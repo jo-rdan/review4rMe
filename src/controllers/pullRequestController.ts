@@ -1,55 +1,79 @@
-import { Request, Response } from "express";
-import { createAppAuth } from "@octokit/auth-app";
-import { Octokit } from "@octokit/rest";
-import OpenAI from "openai";
+import { Request, Response } from 'express'
+import { createAppAuth } from '@octokit/auth-app'
+import { Octokit } from '@octokit/rest'
+import OpenAI from 'openai'
 
-import { readFileSync } from "fs";
-
+import { readFileSync } from 'fs'
+import { parseAISuggestions } from '../helpers/parser'
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+    apiKey: process.env.OPENAI_API_KEY!
+})
 
-export async function handlePullRequestReviewEvent(req: Request, res: Response) {
-  const event = req.body;
+export async function handlePullRequestReviewEvent(
+    req: Request,
+    res: Response
+) {
+    const event = req.body
 
-  if (!event.pull_request) return res.sendStatus(200);
+    if (!event.pull_request) return res.sendStatus(200)
 
-  const pr = event.pull_request;
-  const installationId = event.installation.id;
+    const pr = event.pull_request
+    const installationId = event.installation.id
 
-  const auth = createAppAuth({
-    appId: process.env.APP_ID!,
-    privateKey: readFileSync(process.env.PRIVATE_KEY_PATH!, "utf8"),
-    installationId,
-  });
+    const auth = createAppAuth({
+        appId: process.env.APP_ID!,
+        privateKey: readFileSync(process.env.PRIVATE_KEY_PATH!, 'utf8'),
+        installationId
+    })
 
-  const { token } = await auth({ type: "installation" });
-  const octokit = new Octokit({ auth: token });
+    const { token } = await auth({ type: 'installation' })
+    const octokit = new Octokit({ auth: token })
 
-  const diffRes = await octokit.pulls.get({
-    owner: event.repository.owner.login,
-    repo: event.repository.name,
-    pull_number: pr.number,
-    mediaType: { format: "diff" },
-  });
+    const diffRes = await octokit.pulls.get({
+        owner: event.repository.owner.login,
+        repo: event.repository.name,
+        pull_number: pr.number,
+        mediaType: { format: 'diff' }
+    })
 
-  const diff = diffRes.data as unknown as string;
+    const diff = diffRes.data as unknown as string
 
-  const prompt = `You're a senior engineer reviewing a pull request. Focus only on high-value, actionable suggestions. Output in format: [file:line] - comment.
+    const prompt = `You're a senior engineer reviewing a pull request. Focus only on high-value, actionable suggestions. Output in format: [file:line] - comment.
 
-${diff}`;
+${diff}`
 
-  const completion = await await openai.chat.completions.create({
-  model: "gpt-4",
-  messages: [{ role: "user", content: prompt }],
-  temperature: 0.2,
-});
+    const completion = await await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.2
+    })
 
-const aiResponse = completion.choices[0].message?.content?.trim()
-  console.log("🤖 AI suggestions:\n", aiResponse);
+    const aiResponse = completion.choices[0].message?.content?.trim()
 
-  // To-do: parse aiResponse and post inline comments
+    const suggestions = parseAISuggestions(aiResponse || '')
 
-  res.sendStatus(200);
+    suggestions.forEach(async (suggestion) => {
+        try {
+            await octokit.pulls.createReviewComment({
+                owner: event.repository.owner.login,
+                repo: event.repository.name,
+                pull_number: pr.number,
+                body: suggestion.comment,
+                commit_id: pr.head.sha,
+                path: suggestion.file,
+                line: suggestion.line,
+                side: 'RIGHT'
+            })
+        } catch (err) {
+            console.warn(
+                `Failed to comment on ${suggestion.file}:${suggestion.line}`,
+                err
+            )
+        }
+    })
+
+    // To-do: parse aiResponse and post inline comments
+
+    res.sendStatus(200)
 }
