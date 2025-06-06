@@ -24,6 +24,7 @@ app.use(
 
 // Secure webhook endpoint
 app.post("/review", verifySignatureMiddleware as unknown as any, handlePullRequestReviewEvent as unknown as any);
+app.get('/ping', (_, res) => res.send('pong') as unknown as any)
 
 // Start server
 const PORT = process.env.PORT || 3000;
