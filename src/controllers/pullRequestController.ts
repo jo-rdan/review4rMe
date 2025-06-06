@@ -43,8 +43,8 @@ export async function handlePullRequestReviewEvent(
 
 ${diff}`
 
-        const completion = await await openai.chat.completions.create({
-            model: 'gpt-4',
+        const completion = await openai.chat.completions.create({
+            model: 'gpt-4o',
             messages: [{ role: 'user', content: prompt }],
             temperature: 0.2
         })
