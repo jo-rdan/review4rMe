@@ -3,7 +3,6 @@ import { createAppAuth } from '@octokit/auth-app'
 import { Octokit } from '@octokit/rest'
 import OpenAI from 'openai'
 
-import { readFileSync } from 'fs'
 import { parseAISuggestions } from '../helpers/parser'
 
 const openai = new OpenAI({
@@ -24,7 +23,7 @@ export async function handlePullRequestReviewEvent(
 
         const auth = createAppAuth({
             appId: process.env.APP_ID!,
-            privateKey: readFileSync(process.env.PRIVATE_KEY_PATH!, 'utf8'),
+            privateKey: process.env.PRIVATE_KEY!,
             installationId
         })
 
