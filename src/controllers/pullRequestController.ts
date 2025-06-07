@@ -44,7 +44,7 @@ export async function handlePullRequestReviewEvent(
 ${diff}`
 
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o',
+            model: 'gpt-3.5-turbo',
             messages: [{ role: 'user', content: prompt }],
             temperature: 0.2
         })
@@ -76,5 +76,6 @@ ${diff}`
         return res.sendStatus(200)
     } catch (error) {
         console.error('Error handling pull request review event:', error)
+        return res.sendStatus(500)
     }
 }
