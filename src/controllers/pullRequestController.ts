@@ -6,7 +6,7 @@ import OpenAI from 'openai'
 import { parseAISuggestions } from '../helpers/parser'
 
 const openai = new OpenAI({
-    apiKey: process.env.GROQ_API_KEY!,
+    apiKey: process.env.GROK_API_KEY!,
     baseURL: 'https://api.groq.com/openai/v1'
 })
 
@@ -45,7 +45,7 @@ export async function handlePullRequestReviewEvent(
 ${diff}`
 
         const completion = await openai.chat.completions.create({
-            model: 'mixtral-8x7b-32768',
+            model: 'llama3-8b-8192',
             messages: [{ role: 'user', content: prompt }],
             temperature: 0.2
         })
