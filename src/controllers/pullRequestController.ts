@@ -6,7 +6,7 @@ import OpenAI from 'openai'
 import { parseAISuggestions } from '../helpers/parser'
 
 const openai = new OpenAI({
-    apiKey: process.env.GROK_API_KEY!,
+    apiKey: process.env.GROQ_API_KEY!,
     baseURL: 'https://api.groq.com/openai/v1'
 })
 
