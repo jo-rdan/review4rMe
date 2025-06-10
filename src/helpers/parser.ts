@@ -8,6 +8,7 @@ export const parseAISuggestions = (raw: string): AISuggestion[] => {
     const lines = raw.split('\n')
     const suggestions: AISuggestion[] = []
 
+    console.log('Raw AI response:', raw)
     lines.forEach((line) => {
         const match = line.match(/^\[(.+):(\d+)\]\s*-\s*(.+)$/)
         if (match) {
