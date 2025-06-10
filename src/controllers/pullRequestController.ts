@@ -54,6 +54,8 @@ ${diff}`
 
         const suggestions = parseAISuggestions(aiResponse || '')
 
+        console.log('Raw AI response:', aiResponse, completion)
+
         suggestions.forEach(async (suggestion) => {
             try {
                 await octokit.pulls.createReviewComment({
