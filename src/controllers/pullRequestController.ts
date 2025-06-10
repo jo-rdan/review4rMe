@@ -74,7 +74,11 @@ ${diff}`
             }
         })
 
-        return res.sendStatus(200)
+        return res.send({
+            status: 200,
+            suggestions,
+            message: 'Review comments added successfully'
+        })
     } catch (error) {
         console.error('Error handling pull request review event:', error)
         return res.send({ status: 500, error: (error as any).error })
