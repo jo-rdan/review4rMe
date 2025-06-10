@@ -54,8 +54,6 @@ ${diff}`
 
         const suggestions = parseAISuggestions(aiResponse || '')
 
-        console.log('shinga', aiResponse)
-
         suggestions.forEach(async (suggestion) => {
             try {
                 await octokit.pulls.createReviewComment({
