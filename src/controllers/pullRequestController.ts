@@ -77,6 +77,6 @@ ${diff}`
         return res.sendStatus(200)
     } catch (error) {
         console.error('Error handling pull request review event:', error)
-        return res.send({ status: 500, error })
+        return res.send({ status: 500, error: (error as any).error })
     }
 }
